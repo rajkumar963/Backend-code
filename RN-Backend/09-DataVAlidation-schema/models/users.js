@@ -7,36 +7,43 @@ const { Schema } = mongoose;
         firstName: {
           type: String,
           required: true,
-          trim: true,
-          maxLength: 25
+          minlength: 2,
+          maxlength: 50
         },
         lastName: {
           type: String,
-          required: true,
-          trim: true,
-          maxLength: 25
         },
         age:{
-          type: Number,
-          required: true
+          type: Number, 
+          min: 14,
+          max: 100,
+          required: true    
         },
         gender:{
-          type: String,
-          required: true
-        },
+          type: String,  
+          // enum: ["male", "female", "others"]   
+          validate(value) {
+            if(!["male", "female", "others"].includes(value)){
+              throw new Error("Invalid Gender")
+            }
+          }  
+       },
         email: {
           type: String,
           required: true,
-          unique: true
+          unique: true,
+          trim: true,
+          lowercase: true,
+          immutable: true
         },
         password: {
-          type: String,
-          required: true
+          type: String,        
         },
         photo:{
-          type: String
+          type: String,
+          default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
         }
-      });
+      },{timestamps: true});
     
       //model code
       //class create kia hai 
