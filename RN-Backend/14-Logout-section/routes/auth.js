@@ -2,6 +2,9 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../models/users");
 const validUser=require("../utils/ValidatorUsers");
+const redisClient = require("../config/redis");
+const jwt = require('jsonwebtoken');
+const userAuth = require("../middleware/UserAuth");
 
 const authRouter = express.Router();
 
@@ -44,8 +47,23 @@ authRouter.post("/login", async (req, res) => {
     res.status(400).send("Error: " + error.message);
   }
 });
-authRouter.post("/logout", async (req, res) => {
+
+
+//redis ke database me token ko blocked karna hai
+
+authRouter.post("/logout", userAuth, async (req, res) => {
   try {
+    const token = req.cookies.token;
+    console.log("Token to be blocked:", token);
+
+    //find token expiry time
+    const payload = jwt.decode(token);
+    const expiry = payload.exp; // in seconds
+
+     redisClient.set(`token:${token}`, "BLOCKED");
+    // redisClient.expire(`token:${token}`, 1800); // Set expiration for 1 hour
+    await redisClient.expireAt(`token:${token}`, expiry); // Set expiration to match token's expiry time
+
     res.cookie("token", null, { expires: new Date(Date.now() ) });
     res.send("Logout successful");
   } catch (error) {

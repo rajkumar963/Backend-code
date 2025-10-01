@@ -11,10 +11,12 @@ require("dotenv").config();
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const commentRouter = require("./routes/comments");
+const redisClient = require("./config/redis");
 
 
 app.use(express.json());
 app.use(cookieParser());
+
 
 
 // Get all users
@@ -23,12 +25,25 @@ app.use("/auth", authRouter);
 app.use("/user", userRouter);
 app.use("/comments", commentRouter);
 
-// Start the app only after DB is ready
-main()
-  .then(() => {
-    console.log("Database connection successful");
+const InitializeConnections = async () => {
+  try {
+    // await redisClient.connect();
+    // console.log("Connected to Redis");
+
+    // await main();
+    // console.log("Connected to MongoDB");
+
+    await Promise.all([redisClient.connect(), main()]);
+    console.log("Connected to Redis and MongoDB");
+
     app.listen(process.env.PORT, () => {
       console.log("Server running on http://localhost:" + process.env.PORT);
     });
-  })
-  .catch((err) => console.error("Database connection error:", err));
+
+  } catch (error) {
+    console.error("Redis connection error:", error);
+  }
+}
+
+
+InitializeConnections();
