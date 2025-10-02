@@ -1,0 +1,70 @@
+const mongoose=require("mongoose");
+const { Schema } = mongoose;
+const jwt = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
+
+
+    //schema code 
+    const userSchema = new Schema({
+        firstName: {
+          type: String,
+          required: true,
+          minlength: 2,
+          maxlength: 20
+        },
+        lastName: {
+          type: String,
+        },
+        age:{
+          type: Number, 
+          min: 14,
+          max: 100,
+          required: true    
+        },
+        gender:{
+          type: String,  
+          // enum: ["male", "female", "others"]   
+          validate(value) {
+            if(!["male", "female", "others"].includes(value)){
+              throw new Error("Invalid Gender")
+            }
+          }  
+       },
+        email: {
+          type: String,
+          required: true,
+          unique: true,
+          trim: true,
+          lowercase: true,
+          immutable: true
+        },
+        password: {
+          type: String,        
+        },
+        photo:{
+          type: String,
+          default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+        }
+      },{timestamps: true});
+
+      userSchema.methods.getJWT = function(){
+        const ans= jwt.sign({_id:this._id, email:this.email}, process.env.JWT_SECRET_KEY,{ expiresIn: '1d' });
+        return ans;
+      }
+
+      userSchema.methods.verifyPassword = async function(Userpassword){
+           const ans= await bcrypt.compare(Userpassword, this.password);
+           return ans;
+      }
+    
+    //static function
+    // userSchema.statics.findByEmail = async function(email){
+    //     const user= await this.findOne({email:email});
+    //     return user;
+    // }
+
+      //model code
+      //class create kia hai 
+      const User = mongoose.model('user', userSchema);
+
+      module.exports=User;
