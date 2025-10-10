@@ -14,9 +14,25 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-        <script>
+    <script>
         const socket = io();
-        console.log(socket);
+        const messagesDisplay = document.getElementById('messagesDisplay');
+        const messageInput = document.getElementById('message');
+
+        function sendMessage() {
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                socket.emit('chatMessage', message);
+                messageInput.value = '';
+            }
+        }
+
+        socket.on('chatMessage', (message) => {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesDisplay.appendChild(messageElement);
+            messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
+        });
     </script>
 </body>
 </html>
